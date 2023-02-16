@@ -1,0 +1,75 @@
+[package]
+name = "frontend"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+yew = { version = "0.20.0", features = ["csr"] }
+wasm-bindgen = "0.2.84"
+wasm-bindgen-futures = "0.4.34"
+js-sys = "0.3.61"
+
+
+# tauri-sys = { git = "https://github.com/JonasKruckenberg/tauri-sys", features = ["all"] }
+tauri-sys = { git = "https://github.com/bicarlsen/tauri-sys.git", branch = "fs", features = ["all"] }
+
+
+serde_json = "1.0.92"
+serde = "1.0.152"
+log = "0.4.17"
+wasm-logger = "0.2.0"
+symphonia-core = "0.5.2"
+anyhow = "1.0.69"
+pathdiff = "0.2.1"
+rand = "0.8.5"
+thiserror = "1.0.38"
+dirs = "4.0.0"
+figment = { version="0.10.8", features = ["toml"]}
+toml = "0.7.2"
+getrandom = { version = "0.2.8", features = ["js"] }
+lofty = "0.11.0"
+id3 = "1.6.0"
+walkdir = "2.3.2"
+futures = "0.3.26"
+
+[dependencies.web-sys]
+version = "0.3.61"
+features = [
+  'AudioContext',
+  'AudioBuffer',
+  'AudioBufferSourceNode',
+  'AudioContextOptions',
+  'AudioDestinationNode',
+  'AudioNode',
+  'AudioParam',
+  'GainNode',
+  'OscillatorNode',
+  'OscillatorType',
+]
+
+[dependencies.symphonia]
+version = "0.5.2"
+features = [
+  "wav",
+  "vorbis",
+  "pcm",
+  "ogg", 
+  "flac", 
+  "aac", 
+  "alac", 
+  "symphonia-bundle-flac", 
+  "symphonia-bundle-mp3", 
+  "symphonia-codec-aac", 
+  "symphonia-codec-alac", 
+  "symphonia-codec-pcm", 
+  "symphonia-codec-vorbis", 
+  "symphonia-format-isomp4", 
+  "symphonia-format-ogg",
+  "symphonia-format-wav"
+]
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libpulse-binding = "2.5.0"
+libpulse-simple-binding = "2.5.0"

@@ -1,0 +1,51 @@
+[package]
+name = "app"
+version = "0.1.0"
+description = "A Tauri App"
+authors = ["you"]
+license = ""
+repository = ""
+default-run = "app"
+edition = "2021"
+rust-version = "1.59"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+tauri-build = { version = "1.2.1", features = [] }
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+tauri = { version = "1.2.4", features = ["dialog-all", "fs-all", "path-all", "shell-open"] }
+
+pretty_env_logger = "0.4"
+rodio = "0.16.0"
+symphonia = { version = "0.5.1", features = ["wav", "vorbis", "pcm", "ogg", "flac", "aac", "alac", "symphonia-bundle-flac", "symphonia-bundle-mp3", "symphonia-codec-aac", "symphonia-codec-alac", "symphonia-codec-pcm", "symphonia-codec-vorbis", "symphonia-format-isomp4", "symphonia-format-ogg", "symphonia-format-wav"] }
+lazy_static = "1.4.0"
+log = { version = "0.4", features = ["release_max_level_info"] }
+native-dialog = "0.6.3"
+chrono = "0.4.23"
+walkdir = "2.3.2"
+crossbeam = "0.8.2"
+libc = "0.2.139"
+parking_lot = "0.12.1"
+thiserror = "1.0.38"
+alsa = "0.7.0"
+syslog = "6.0.1"
+rusqlite = "0.28.0"
+anyhow = "1.0.69"
+lofty = "0.11.0"
+id3 = "1.6.0"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libpulse-binding = "2.5.0"
+libpulse-simple-binding = "2.5.0"
+
+[features]
+# by default Tauri runs in production mode
+# when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL
+default = ["custom-protocol"]
+# this feature is used for production builds where `devPath` points to the filesystem
+# DO NOT remove this
+custom-protocol = ["tauri/custom-protocol"]

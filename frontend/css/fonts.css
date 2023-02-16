@@ -1,0 +1,14 @@
+@font-face {
+    font-family: "Inter";
+    src: url("../public/inter.ttf");
+}
+
+@font-face {
+    font-family: "Comfortaa";
+    src: url("../public/comfortaa.ttf");
+}
+
+@font-face {
+    font-family: "Inconsolata";
+    src: url("../public/inconsolata.ttf");
+}
