@@ -1,3 +1,4 @@
+use std::{env, os};
 use std::ffi::OsStr;
 use std::path::PathBuf;
 use std::{time::Duration, fs::File, path::Path, io::BufReader};
@@ -26,6 +27,7 @@ pub struct Song {
     ext: Option<String>,
     file_type: Option<String>,
     file_path: Option<String>,
+    wasm_file_path: Option<String>,
     directory: Option<String>,
     duration: Duration
 }
@@ -115,6 +117,7 @@ impl Song {
         let album = Some(String::from("Unsupported?"));
         let title = p.file_stem().and_then(OsStr::to_str).map(String::from);
         let file_path = Some(p.to_string_lossy().into_owned());
+        let wasm_file_path = get_wasm_friendly_path(file_path.clone().unwrap().as_str());
         let duration = Duration::from_secs(0);
         let name = p
             .file_name()
@@ -133,6 +136,7 @@ impl Song {
             album,
             title,
             file_path,
+            wasm_file_path,
             directory,
             duration,
             name,
@@ -227,4 +231,23 @@ pub fn get_parent_folder(filename: &str) -> String {
         None => parent_folder = std::env::temp_dir(),
     }
     parent_folder.to_string_lossy().to_string()
+}
+
+// Don't use tauri-sys or js tauri api to get multiple song asset urls
+// Do it here instead when the song is first fetched in backend.
+fn get_wasm_friendly_path(path: &str) -> Option<String> {
+    let encoded_path = urlencoding::encode(path);
+    match env::consts::OS {
+        "windows" => {
+            let mut windows_path = "https://asset.localhost/".to_string();
+            windows_path.push_str(&encoded_path);
+            Some(windows_path)
+        },
+        
+        "mac" | "linux" | &_ => {
+            let mut unix_path = "asset://localhost/".to_string();
+            unix_path.push_str(&encoded_path);
+            Some(unix_path)
+        }
+    }
 }

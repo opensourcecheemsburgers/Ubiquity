@@ -3,7 +3,7 @@ use std::path;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
-use crate::{components::{Footer, ArtistCard, header, table}, App, Msg, theme_callback, song::Song};
+use crate::{components::{Footer, ArtistCard, header, table}, App, Msg, theme_callback, song::Song, config::Config, player::UbiquityPlayer, playlist::Playlist};
 
 
 pub fn home(ctx: &Context<App>, theme: &str, songs: &Vec<Song>) -> Html {
@@ -25,6 +25,12 @@ pub fn welcome(ctx: &Context<App>, theme: &str) -> Html {
                     <h1 class="text-6xl font-bold font-display">{"Ubiquity"}</h1>
                     <p class="text-xl py-6 font-mono">{"A cross-platform music player for Windows, Mac & Linux."}</p>
                     <button onclick={ctx.link().callback(|_| Msg::SetLibraryFolder())} class="btn btn-primary btn-outline">{"Select Songs"}</button>
+                    <button onclick={ctx.link().callback(|_| Msg::TestPlayer())} class="btn btn-primary btn-outline">{"Test wasm audio"}</button>
+                    <audio controls={true}>
+                    <source src="https://www.kozco.com/tech/piano2-CoolEdit.mp3" type="audio/mpeg"/>
+                    <source src="horse.mp3" type="audio/mpeg"/>
+                    {"Your browser does not support the audio tag."}
+                  </audio> 
                 </div>
             </div>
         </div>
@@ -54,8 +60,6 @@ pub fn about(ctx: &Context<App>, theme: &str) -> Html {
                         <a href="https://daisyui.com/" target="_blank" class="btn btn-lg btn-outline">{"DaisyUI"}</a>
                         <a href="https://daisyui.com/" target="_blank" class="btn btn-lg btn-outline">{"Termusic"}</a>
                         </div>
-
-
                     </article>
                 </div>
             </div>

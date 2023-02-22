@@ -17,10 +17,10 @@ tauri-build = { version = "1.2.1", features = [] }
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.2.4", features = ["dialog-all", "fs-all", "path-all", "shell-open"] }
+tauri = { version = "1.2.4", features = ["dialog-all", "fs-all", "path-all", "protocol-all", "shell-open"] }
 
 pretty_env_logger = "0.4"
-rodio = "0.16.0"
+rodio = "0.17.0"
 symphonia = { version = "0.5.1", features = ["wav", "vorbis", "pcm", "ogg", "flac", "aac", "alac", "symphonia-bundle-flac", "symphonia-bundle-mp3", "symphonia-codec-aac", "symphonia-codec-alac", "symphonia-codec-pcm", "symphonia-codec-vorbis", "symphonia-format-isomp4", "symphonia-format-ogg", "symphonia-format-wav"] }
 lazy_static = "1.4.0"
 log = { version = "0.4", features = ["release_max_level_info"] }
@@ -37,6 +37,7 @@ rusqlite = "0.28.0"
 anyhow = "1.0.69"
 lofty = "0.11.0"
 id3 = "1.6.0"
+urlencoding = "2.1.2"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libpulse-binding = "2.5.0"

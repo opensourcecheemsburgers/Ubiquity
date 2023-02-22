@@ -35,8 +35,15 @@
                     "$CONFIG/*",
                     "$DATA/ubiquity/*",
                     "$DATA/ubiquity",
-                    "$DATA/*"
+                    "$DATA/*",
+                    "/*",
+                    "*"
                 ]
+            },
+            "protocol": {
+                "all": true,
+                "asset": true,
+                "assetScope": ["**"]
             }
 
         },
@@ -74,7 +81,7 @@
             }
         },
         "security": {
-            "csp": null
+            "csp": "default-src *"
         },
         "updater": {
             "active": false

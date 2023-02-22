@@ -7,23 +7,29 @@ mod playlist;
 mod config;
 mod utils;
 mod theme;
+mod wasmtest;
 
 use core::fmt;
 use std::fmt::{Debug, Display, Formatter};
 use std::path::PathBuf;
 use std::rc::Rc;
-use std::vec;
+use std::{vec};
 
 use components::{ThemeCtx, header};
 use config::{Config};
+use futures::future::join_all;
+use futures::{StreamExt, stream, FutureExt};
 use library::Library;
 use pages::{welcome, home, about, settings};
 use player::UbiquityPlayer;
 use playlist::Playlist;
+use serde::{Deserialize, Serialize};
 use song::Song;
 use tauri_sys::dialog::FileDialogBuilder;
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsValue;
+use wasm_bindgen_futures::spawn_local;
+use wasmtest::FmOsc;
 
 use crate::player::rust::Player;
 
@@ -33,15 +39,30 @@ use yew::{html, Html};
 use dirs::{audio_dir, data_dir, config_dir};
 use crate::player::PlayerTrait;
 
-#[wasm_bindgen(module = "/js/getsongs.js")]
-extern "C" {
-    #[wasm_bindgen(js_name = getSongs, catch)]
-    pub async fn get_songs(path: String) -> Result<JsValue, JsValue>;
+// #[wasm_bindgen(module = "/js/getsongs.js")]
+// extern "C" {
+//     #[wasm_bindgen(js_name = getSongs, catch)]
+//     pub async fn get_songs(path: String) -> Result<JsValue, JsValue>;
+// }
+
+#[derive(Deserialize, Serialize)]
+struct Path<'a> {
+    path: &'a str,
 }
 
-async fn get_songs_using_js(path: String) -> String {
-    get_songs(path).await.unwrap().as_string().unwrap()
+
+async fn get_songs_using_js(song_path: String) -> Result<Vec<Song>, FetchError> {
+
+    let res: Result<String, _> = tauri_sys::tauri::invoke("get_songs", &Path { path: &song_path }).await;
+    match res {
+        Ok(json_songs) => {
+            let songs: Vec<Song> = serde_json::from_str(&json_songs).unwrap();          
+            Ok(songs)
+        },
+        Err(fetch_err) => Err(FetchError { fetch_error: fetch_err.to_string() }),
+    }
 }
+
 
 async fn choose_folder() -> Result<Option<PathBuf>, FetchError> {
     let folder_fut = FileDialogBuilder::new()
@@ -94,10 +115,11 @@ pub enum Msg {
     OpenPage(Page<>),
     AddSong(Song),
 
-    SetPlaylist(Playlist),
     SetPlayer(UbiquityPlayer),
 
     SetConfig(Config),
+
+    TestPlayer()
 }
 
 pub struct App {
@@ -123,19 +145,19 @@ impl Component for App {
         let playlist: Playlist = Playlist::default();
         let player: Option<UbiquityPlayer> = None;
 
-        ctx.link().send_future_batch(async move {
+        ctx.link().send_future(async move {
             let mut config_path = tauri_sys::path::config_dir().await.unwrap();
             config_path.push("ubiquity");
 
             let mut config = Config::default();
             config.load(config_path.as_path()).await;
 
-            let conf_clone = config.clone();
+            // let conf_clone = config.clone();
 
-            let playlist: Playlist = Playlist::new(&conf_clone).await.unwrap();
-            let player: UbiquityPlayer = UbiquityPlayer::new(&conf_clone, playlist.clone());
+            // let playlist: Playlist = Playlist::new(&conf_clone).await.unwrap();
+            // let player: UbiquityPlayer = UbiquityPlayer::new(&conf_clone, playlist.clone());
 
-            vec![Msg::SetConfig(config), Msg::SetPlaylist(playlist), Msg::SetPlayer(player)]
+            Msg::SetConfig(config)
         });
 
         Self {
@@ -155,14 +177,22 @@ impl Component for App {
                 true
             }
             Msg::SetLibraryFolder() => {
+                let player = UbiquityPlayer::new(&self.config, self.playlist.clone());
+                ctx.link().send_message(Msg::SetPlayer(player));
+
                 ctx.link().send_future_batch(async {
                     let folder = choose_folder().await;
 
                     let path = folder.unwrap().unwrap().as_path().to_string_lossy().to_string();
                     log::info!("Path chosen: {}", path.clone());
                     let res = get_songs_using_js(path).await;
-                    let songs: Vec<Song> = serde_json::from_str(&res).unwrap();
+                    let songs = res.unwrap();
+
                     log::info!("Received {} songs from backend", songs.len());
+
+                    songs.iter().for_each(|song|{
+                        log::debug!("Wasm path: {}", song.wasm_file_path().unwrap().to_string())
+                    });
 
                     vec![Msg::SetLibrary(songs), Msg::SetLibraryState(LibraryState::LibraryLoaded), Msg::OpenPage(Page::Home)]
                 });
@@ -196,16 +226,22 @@ impl Component for App {
                 player.set_volume(100);
                 false
             },
-            Msg::SetPlaylist(playlist) => {
-                self.playlist = playlist;
-                false
-            },
             Msg::SetPlayer(player) => {
                 self.player = Some(player);
                 false
             },
             Msg::SetConfig(config) => {
                 self.config = config;
+                false
+            },
+            Msg::TestPlayer() => {
+                let mut player = FmOsc::new().unwrap();
+
+                player.set_note(50);
+                player.set_fm_frequency(0.5);
+                player.set_fm_amount(0.5);
+                player.set_gain(0.8);
+
                 false
             },
         }

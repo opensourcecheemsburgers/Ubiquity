@@ -10,7 +10,7 @@ use lofty::{
 };
 use serde::{Deserialize, Serialize};
 use yew::{Html, html, Properties, Callback};
-use web_sys::{AudioContext, OscillatorType, MouseEvent};
+use web_sys::{AudioContext, OscillatorType, MouseEvent, Url};
 
 use crate::utils::get_parent_folder;
 
@@ -29,6 +29,7 @@ pub struct Song {
     ext: Option<String>,
     file_type: Option<String>,
     file_path: Option<String>,
+    wasm_file_path: Option<String>,
     directory: Option<String>,
     duration: Duration
 }
@@ -118,6 +119,7 @@ impl Song {
         let album = Some(String::from("Unsupported?"));
         let title = p.file_stem().and_then(OsStr::to_str).map(String::from);
         let file_path = Some(p.to_string_lossy().into_owned());
+        let wasm_file_path = None;
         let duration = Duration::from_secs(0);
         let name = p
             .file_name()
@@ -140,16 +142,27 @@ impl Song {
             duration,
             name,
             genre,
+            wasm_file_path,
         }
     }    
-    
+
+    pub fn wasm_file_path(&self) -> Option<&str> {
+        self.wasm_file_path.as_deref()
+    }
+
     pub fn render_table_item(&self, index: usize, onclick: Callback<MouseEvent>) -> Html {
         let is_even: bool = index & 1 == 0; 
-        
+        let song_path = self.wasm_file_path.clone().unwrap();
+
         match is_even {
             true => {
                 html! {
                     <tr onclick={onclick} class="bg-base-100">
+                        <td>
+                            <audio controls={true}>
+                            <source src={song_path} type="audio/x-m4a" />
+                            </audio>
+                        </td>
                         <td>{self.title()}</td>
                         <td>{self.artist()}</td>
                         <td>{self.album()}</td>
